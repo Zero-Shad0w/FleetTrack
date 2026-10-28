@@ -1,0 +1,59 @@
+name: Build FleetTrack Windows EXE
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'FleetTrack-v8.zip'
+      - '.github/workflows/build-windows.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  windows-installer:
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check v8 source archive
+        shell: pwsh
+        run: |
+          if (!(Test-Path "FleetTrack-v8.zip")) {
+            throw "FleetTrack-v8.zip is missing. Upload the v8 build kit as FleetTrack-v8.zip in the repository root."
+          }
+          Expand-Archive -Path "FleetTrack-v8.zip" -DestinationPath "build-source" -Force
+          if (!(Test-Path "build-source/fleet-app/package.json")) {
+            throw "Expected fleet-app/package.json inside FleetTrack-v8.zip"
+          }
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies and build Windows installer
+        shell: pwsh
+        working-directory: build-source/fleet-app
+        run: |
+          $env:PYTHON = (python -c "import sys; print(sys.executable)")
+          npm pkg set "dependencies.better-sqlite3=11.8.1"
+          npm install
+          if ($LASTEXITCODE -ne 0) { throw "Root npm install failed" }
+          npm --prefix backend install
+          if ($LASTEXITCODE -ne 0) { throw "Backend npm install failed" }
+          npm --prefix backend exec prisma generate
+          if ($LASTEXITCODE -ne 0) { throw "Prisma generate failed" }
+          npm --prefix frontend install
+          if ($LASTEXITCODE -ne 0) { throw "Frontend npm install failed" }
+          npm run dist:win
+          if ($LASTEXITCODE -ne 0) { throw "Electron installer build failed" }
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: FleetTrack-Pro-Windows-Installer
+          path: build-source/fleet-app/installer-output/*.exe
+          if-no-files-found: error
+          retention-days: 30
