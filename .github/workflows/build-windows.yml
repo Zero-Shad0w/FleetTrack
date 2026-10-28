@@ -44,7 +44,7 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw "Root npm install failed" }
           npm --prefix backend install
           if ($LASTEXITCODE -ne 0) { throw "Backend npm install failed" }
-          npm --prefix backend exec prisma generate
+          npm --prefix backend run db:generate
           if ($LASTEXITCODE -ne 0) { throw "Prisma generate failed" }
           npm --prefix frontend install
           if ($LASTEXITCODE -ne 0) { throw "Frontend npm install failed" }
