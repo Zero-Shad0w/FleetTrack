@@ -31,3 +31,8 @@ Use the `BUILD-FLEETTRACK-EXE-ONE-CLICK.bat` script in the extracted `fleet-app`
 ## Security and build status
 
 Dependency audit warnings have been reported during builds. Avoid `npm audit fix --force` without testing because major upgrades may break the app. Test the installed EXE, database persistence, backend connectivity, and backup/restore before relying on it for production data.
+
+
+## License
+
+FleetTrack Pro is released under **The Unlicense** and is dedicated to the public domain. You may copy, modify, publish, use, compile, sell, and distribute the software for any purpose, subject to the terms and disclaimer in the [`LICENSE`](LICENSE) file.
